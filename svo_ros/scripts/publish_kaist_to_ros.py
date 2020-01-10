@@ -47,27 +47,25 @@ def publish_data(dataset_path, img_pub, imu_pub):
         imu_reader = csv.reader(imu_stamps)
         bridge = cv_bridge.CvBridge()
         time_diff = None
+        last_imu_msg = None
+        curr_img_msg = None
         try:
             for timestamp, sensor_name in stamp_reader:
                 if rospy.is_shutdown(): break
                 if time_diff == None:
                     first_stamp = timestamp_str_to_ros(timestamp)
                     time_diff = first_stamp - rospy.Time.now()
-                    
-                    
-                    last_stereo_timestamp = first_stamp
-                    stereo_new = False
+                    new_image = False
 
                 if sensor_name == "stereo":
                     img = imread_debayer(IMG_PATH + timestamp + ".png")
                     img_message = bridge.cv2_to_imgmsg(img)
 
                     img_message.header.stamp = timestamp_str_to_ros(timestamp) - time_diff
-                    while (rospy.Time.now() < img_message.header.stamp) and not rospy.is_shutdown(): pass
-                    img_pub.publish(img_message)
-
-                    last_stereo_timestamp = timestamp_str_to_ros(timestamp)
-                    stereo_new = True
+                    curr_img_msg = img_message
+                    # while (rospy.Time.now() < img_message.header.stamp) and not rospy.is_shutdown(): pass
+                    # 
+                    new_image = True
 
                 elif sensor_name == "imu":
                     imu_line = imu_reader.next()
@@ -83,15 +81,20 @@ def publish_data(dataset_path, img_pub, imu_pub):
                     imu_message.linear_acceleration.x = float(imu_line[11])
                     imu_message.linear_acceleration.y = float(imu_line[12])
                     imu_message.linear_acceleration.z = float(imu_line[13])
+                    
+                    # Pseudo synchronization of image to closest IMU message
+                    if new_image and last_imu_msg is not None:
+                        diff_to_last = abs(curr_img_msg.header.stamp - last_imu_msg.header.stamp)
+                        diff_to_curr = abs(curr_img_msg.header.stamp - imu_message.header.stamp)
+                        if diff_to_last < diff_to_curr: imu_pub_msg = last_imu_msg
+                        else: imu_pub_msg = imu_message
+                        curr_img_msg.header.stamp = imu_pub_msg.header.stamp
+                        img_pub.publish(curr_img_msg)
+                        new_image = False
 
                     while (rospy.Time.now() < imu_message.header.stamp) and not rospy.is_shutdown(): pass
                     imu_pub.publish(imu_message)
-
-                    if stereo_new:
-                        stereo_new = False
-                        # print("Last stereo timestamp: {}".format(last_stereo_timestamp))
-                        # print("Subsequent IMU timestamp: {}".format(timestamp_str_to_ros(timestamp)))
-                        print("Delay between last stereo image and IMU: {}".format(timestamp_str_to_ros(timestamp) - last_stereo_timestamp))
+                    last_imu_msg = imu_message
                 else:
                     pass
         except rospy.ROSInterruptException:

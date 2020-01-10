@@ -24,7 +24,7 @@ cameras:
            -2.30382632e-04, -9.99882561e-01, -1.53235669e-02, -1.15890e-01,
            0.0, 0.0, 0.0, 1.0]
 imu_params:
-  delay_imu_cam: 0.008
+  delay_imu_cam: 0.0
   max_imu_delta_t: 0.1
   acc_max: 176.0
   omega_max: 7.8
