@@ -1,0 +1,45 @@
+label: "kaist"
+cameras:
+- camera:
+    label: cam0
+    line-delay-nanoseconds: 0
+    image_height: 560
+    image_width: 1280
+    type: pinhole
+    intrinsics:
+      cols: 1
+      rows: 4
+      data: [816.9, 811.57, 608.5, 263.48]
+    distortion:
+      type: radial-tangential
+      parameters:
+        cols: 1
+        rows: 4
+        data: [-0.0561430278, 0.139525632, -0.0012155907, -0.0009728138]
+  T_B_C:
+    cols: 4
+    rows: 4
+    data: [-6.80502108e-03, -1.53216450e-02,  9.99859460e-01,  1.71239e+00,
+           -9.99976819e-01,  3.34627450e-04, -6.80069206e-03,  2.47401e-01,
+           -2.30382632e-04, -9.99882561e-01, -1.53235669e-02, -1.15890e-01,
+           0.0, 0.0, 0.0, 1.0]
+imu_params:
+  delay_imu_cam: 0.008
+  max_imu_delta_t: 0.1
+  acc_max: 176.0
+  omega_max: 7.8
+  sigma_omega_c: 0.01
+  sigma_acc_c: 8.0e-3
+  sigma_omega_bias_c: 2.0e-5
+  sigma_acc_bias_c: 8.0e-5
+  sigma_integration: 0.0
+  g: 9.8082
+  imu_rate: 100
+
+imu_initialization:
+  velocity: [0.0, 0, 0.0]
+  omega_bias: [0.0, 0, 0.0]
+  acc_bias: [0.0, 0.0, 0.0]
+  velocity_sigma: 2.0
+  omega_bias_sigma: 0.01
+  acc_bias_sigma: 0.1
